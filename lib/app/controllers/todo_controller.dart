@@ -8,10 +8,8 @@ class TodoController extends GetxController {
   var tasks = <TaskModel>[].obs;
   var filter = Filter.all.obs;
 
-
   void addTask(String title) {
     final inputText = title.trim();
-
 
     if (inputText.isEmpty) {
       Get.snackbar(
@@ -35,9 +33,7 @@ class TodoController extends GetxController {
       return;
     }
 
-
     tasks.add(TaskModel(title: inputText));
-
 
     Get.snackbar(
       "Success",
@@ -60,6 +56,12 @@ class TodoController extends GetxController {
 
   void changeFilter(Filter newFilter) {
     filter.value = newFilter;
+  }
+
+  void updateDueDate(int index, DateTime newDate) {
+    var task = tasks[index];
+    task.dueDate = newDate;
+    tasks[index] = task;
   }
 
   List<TaskModel> get filteredTasks {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../components/task_tile.dart';
 import '../controllers/todo_controller.dart';
 import '../themes/app_theme.dart';
@@ -11,6 +12,7 @@ class TodoView extends GetView<TodoController> {
   Widget build(BuildContext context) {
     final ThemeController themeController = Get.find();
     final TextEditingController _textController = TextEditingController();
+    DateTime? _selectedDate;
 
     return Scaffold(
       appBar: AppBar(
@@ -39,6 +41,7 @@ class TodoView extends GetView<TodoController> {
       ),
       body: Column(
         children: [
+          // Add Task Input
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -53,15 +56,40 @@ class TodoView extends GetView<TodoController> {
                   ),
                 ),
                 IconButton(
+                  icon: const Icon(Icons.calendar_today),
+                  onPressed: () async {
+
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime(2100),
+                    );
+
+                    if (pickedDate != null) {
+                      _selectedDate = pickedDate;
+                    }
+                  },
+                ),
+                IconButton(
                   icon: const Icon(Icons.add),
                   onPressed: () {
-                    controller.addTask(_textController.text);
+                    final inputText = _textController.text;
+
+                    // Add task with due date
+                    controller.addTask(inputText);
+                    if (_selectedDate != null) {
+                      controller.updateDueDate(controller.tasks.length - 1, _selectedDate!);
+                    }
+
                     _textController.clear();
+                    _selectedDate = null;
                   },
                 ),
               ],
             ),
           ),
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Obx(() {
@@ -84,6 +112,7 @@ class TodoView extends GetView<TodoController> {
               );
             }),
           ),
+          // Task List
           Expanded(
             child: Obx(() {
               final tasks = controller.filteredTasks;

@@ -1,7 +1,7 @@
 class TaskModel {
   String title;
   bool isDone;
-  DateTime? dueDate; 
+  DateTime? dueDate;
 
   TaskModel({required this.title, this.isDone = false, this.dueDate});
 }
