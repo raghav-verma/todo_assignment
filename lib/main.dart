@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'app/controllers/todo_controller.dart';
-import 'app/routes/app_pages.dart';
+import 'app/bindings/todo_binding.dart';
 import 'app/themes/app_theme.dart';
+import 'app/views/todo_view.dart';
+
 
 void main() {
-  runApp(const TodoListApp());
+  Get.put<ThemeController>(ThemeController());
+  runApp(const MyApp());
 }
 
-class TodoListApp extends StatelessWidget {
-  const TodoListApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'To-Do List',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      initialBinding: BindingsBuilder(() {
-        Get.put(TodoController());
-      }),
-      initialRoute: AppPages.initial,
-      getPages: AppPages.routes,
-    );
+    final themeController = Get.find<ThemeController>();
+    return Obx(() {
+      return GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        initialBinding: TodoBinding(),
+        home: const TodoView(),
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: themeController.theme,
+      );
+    });
   }
 }

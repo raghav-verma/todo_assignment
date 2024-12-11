@@ -1,6 +1,7 @@
-class Task {
+class TaskModel {
   String title;
-  bool isComplete;
+  bool isDone;
+  DateTime? dueDate; 
 
-  Task({required this.title, this.isComplete = false});
+  TaskModel({required this.title, this.isDone = false, this.dueDate});
 }

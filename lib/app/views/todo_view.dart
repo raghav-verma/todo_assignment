@@ -1,94 +1,110 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/todo_controller.dart';
 import '../components/task_tile.dart';
+import '../controllers/todo_controller.dart';
+import '../themes/app_theme.dart';
 
-class TodoView extends StatelessWidget {
-  TodoView({super.key});
-  final TodoController controller = Get.find<TodoController>();
+class TodoView extends GetView<TodoController> {
+  const TodoView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Scaffold(
+    final ThemeController themeController = Get.find();
+    final TextEditingController _textController = TextEditingController();
+
+    return Scaffold(
       appBar: AppBar(
-        title: TextField(
-          onChanged: (value) => controller.searchTerm.value = value,
-          decoration: const InputDecoration(
-            hintText: 'Search tasks...',
-            border: InputBorder.none,
-          ),
-        ),
+        title: const Text('To-Do List'),
         actions: [
-          PopupMenuButton<int>(
-            onSelected: (value) {
-              if (value == 1) {
-                controller.toggleTheme();
-              } else if (value == 2) {
-                controller.clearCompletedTasks();
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 1,
-                child: Text('Toggle Theme'),
-              ),
-              const PopupMenuItem(
-                value: 2,
-                child: Text('Clear Completed'),
-              ),
-            ],
-          ),
+          Obx(() {
+            return Row(
+              children: [
+                const Icon(Icons.dark_mode),
+                const SizedBox(width: 8),
+                Tooltip(
+                  message: themeController.isDark.value
+                      ? "Switch to Light Mode"
+                      : "Switch to Dark Mode",
+                  child: Switch.adaptive(
+                    value: themeController.isDark.value,
+                    onChanged: (val) {
+                      themeController.toggleTheme();
+                    },
+                  ),
+                ),
+              ],
+            );
+          }),
         ],
       ),
       body: Column(
         children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: controller.filteredTasks.length,
-              itemBuilder: (context, index) {
-                return TaskTile(
-                  task: controller.filteredTasks[index],
-                  onChanged: () => controller.toggleTaskCompletion(index),
-                );
-              },
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _textController,
+                    decoration: const InputDecoration(
+                      labelText: 'Add a task',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    controller.addTask(_textController.text);
+                    _textController.clear();
+                  },
+                ),
+              ],
             ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Obx(() {
+              return Row(
+                children: [
+                  const Text('Filter:'),
+                  const SizedBox(width: 10),
+                  DropdownButton<Filter>(
+                    value: controller.filter.value,
+                    onChanged: (value) {
+                      if (value != null) controller.changeFilter(value);
+                    },
+                    items: const [
+                      DropdownMenuItem(value: Filter.all, child: Text('All')),
+                      DropdownMenuItem(value: Filter.completed, child: Text('Completed')),
+                      DropdownMenuItem(value: Filter.incomplete, child: Text('Incomplete')),
+                    ],
+                  ),
+                ],
+              );
+            }),
+          ),
+          Expanded(
+            child: Obx(() {
+              final tasks = controller.filteredTasks;
+              return ListView.builder(
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
+                  return TaskTile(
+                    task: tasks[index],
+                    onChanged: () {
+                      controller.toggleTask(index);
+                    },
+                    onDelete: () {
+                      controller.deleteTask(index);
+                    },
+                  );
+                },
+              );
+            }),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            builder: (context) {
-              String newTask = '';
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      onChanged: (value) => newTask = value,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter task title',
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () {
-                        controller.taskInput.value = newTask;
-                        controller.addTask();
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Add Task'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      ),
-    ));
+    );
   }
 }
